@@ -137,11 +137,11 @@ class Map():
             return __endpoint_internal
         return _endpoint_internal
 
-    def responseStandardizerProxy(self, protocolName):
+    def responseStandardizerProxy(self, realProtocolName):
         'Adds the protocolName to the standardizer call'
-        def _responseStandardizerProxy(*args, **kw):
+        def _responseStandardizerProxy(*args, protocolName=None, **kw):
             # protocolName here is used to prevent the user from modifying it.
-            return self.installedResponseHandler.standardizeResponse(protocolName, *args, **kw)
+            return self.installedResponseHandler.standardizeResponse(*args, protocolName=realProtocolName, **kw)
         return _responseStandardizerProxy
 
     def getDataProxy(self, getData, protocolName):
@@ -169,7 +169,7 @@ class Map():
 
         # Validate endpointIdentifier
         if endpointIdentifier not in self.endpointMap:
-            return sendData(self.installedResponseHandler.exceptionHandler(protocol.name, EndpointNotFound(endpointIdentifier)))
+            return sendData(self.installedResponseHandler.exceptionHandler(EndpointNotFound(endpointIdentifier), protocolName=protocol.name))
 
         # Get endpoint
         endpoint = self.endpointMap[endpointIdentifier]
@@ -179,7 +179,7 @@ class Map():
         for parameter in endpoint["nonOptionalParameters"]:
             data = getData(parameter)
             if data == None:
-                return sendData(self.installedResponseHandler.exceptionHandler(protocol.name, MissingParameter(parameter)))
+                return sendData(self.installedResponseHandler.exceptionHandler(MissingParameter(parameter), protocolName=protocol.name))
             else:
                 callDict[parameter] = data
 
@@ -196,7 +196,7 @@ class Map():
                     callDict[parameter] = endpoint["dataConverters"][parameter](
                         callDict[parameter])
                 except:
-                    return sendData(self.installedResponseHandler.exceptionHandler(protocol.name, ParameterConversionFailure(parameter)))
+                    return sendData(self.installedResponseHandler.exceptionHandler(ParameterConversionFailure(parameter), protocolName=protocol.name))
 
         if endpoint["varKeyword"] != None:
             callDict[endpoint["varKeyword"]] = JITDict(getData)

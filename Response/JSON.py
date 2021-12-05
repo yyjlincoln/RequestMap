@@ -11,7 +11,7 @@ STANDARD_MESSAGES = {
 
 
 class JSONStandardizer(StandardResponseHandler):
-    def standardizeResponse(self, protocolName, code, message=None, **kw):
+    def standardizeResponse(self, code, message=None, *, protocolName=None, **kw):
         res = {
             'message': message if message else STANDARD_MESSAGES.get(code, None),
             'code': code,
@@ -22,7 +22,7 @@ class JSONStandardizer(StandardResponseHandler):
         else:
             return json.dumps(res)
 
-    def exceptionHandler(self, protocolName, exception):
+    def exceptionHandler(self, exception, *, protocolName=None):
         res = {
             'code': -1,
             'message': str(exception)
