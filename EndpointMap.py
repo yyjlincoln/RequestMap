@@ -60,7 +60,7 @@ class Map():
         self.installedProtocols = []
         self.installedResponseHandler = NoResponseHandler()
 
-    def register(self, endpointHandler: str, endpointIdentifier: str, **dataConverters: dict) -> None:
+    def register(self, endpointHandler: str, endpointIdentifier: str, metadata: dict = {}, **dataConverters: dict) -> None:
         '''
         Register a new endpoint.
         :param endpointHandler: The endpoint handler function.
@@ -110,7 +110,8 @@ class Map():
             "dataConverters": dataConverters,
             "varKeyword": varKeyword,
             "nonOptionalParameters": nonOptionalParameters,
-            "optionalParameters": optionalParameters
+            "optionalParameters": optionalParameters,
+            "metadata": metadata
         }
 
         # Notify installed protocols
@@ -121,13 +122,14 @@ class Map():
                 "dataConverters": dataConverters,
                 "varKeyword": varKeyword,
                 "nonOptionalParameters": nonOptionalParameters,
-                "optionalParameters": optionalParameters
+                "optionalParameters": optionalParameters,
+                "metadata": metadata
             })
 
-    def endpoint(self, endpointIdentifier: str, **dataConverters: dict) -> None:
+    def endpoint(self, endpointIdentifier: str, metadata: dict = {}, **dataConverters: dict) -> None:
         def _endpoint_internal(func):
             self.register(
-                endpointHandler=func, endpointIdentifier=endpointIdentifier, **dataConverters)
+                endpointHandler=func, endpointIdentifier=endpointIdentifier, metadata=metadata, **dataConverters)
 
             @wraps(func)
             def __endpoint_internal(*args, **kwargs):
