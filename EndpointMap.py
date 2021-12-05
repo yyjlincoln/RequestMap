@@ -137,8 +137,9 @@ class Map():
 
     def responseStandardizerProxy(self, protocolName):
         'Adds the protocolName to the standardizer call'
-        def _responseStandardizerProxy(data):
-            return self.installedResponseHandler.standardizeResponse(protocolName=protocolName, data=data)
+        def _responseStandardizerProxy(*args, **kw):
+            # protocolName here is used to prevent the user from modifying it.
+            return self.installedResponseHandler.standardizeResponse(protocolName, *args, **kw)
         return _responseStandardizerProxy
 
     def getDataProxy(self, getData, protocolName):
@@ -208,7 +209,7 @@ class Map():
 
     def useResponseHandler(self, standardizerInstance: StandardResponseHandler):
         'Standardizes the response'
-        if self.installedResponseHandler != None:
+        if not isinstance(self.installedResponseHandler, NoResponseHandler):
             raise Exception(
                 "You can only register one responseHandler.")
         if not isinstance(standardizerInstance, StandardResponseHandler):
