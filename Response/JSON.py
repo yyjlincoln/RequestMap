@@ -1,5 +1,7 @@
-def StandardizeResponse(code, message = '', **kw):
-    pass
+class JSONResponseStandardizer():
 
-def ExceptionHandler():
-    pass
+    def standardizeResponse(self, code, message = '', **kw):
+        raise NotImplementedError()
+
+    def exceptionHandler(self, exception):
+        raise NotImplementedError()

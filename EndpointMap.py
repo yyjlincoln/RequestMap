@@ -1,6 +1,8 @@
 from functools import wraps
 import inspect
 from typing import Callable
+
+from RequestMap.Response.ResponseBase import StandardResponseHandler
 from .Protocols.ProtocolBase import StandardProtocolHandler
 
 
@@ -154,3 +156,7 @@ class Map():
     def useProtocol(self, protocolHandlerInstance: StandardProtocolHandler):
         protocolHandlerInstance.install(self)
         self.installedProtocols.append(protocolHandlerInstance)
+    
+    def useResponseHandler(self, standardizerInstance: StandardResponseHandler):
+        'Standardizes the response'
+        pass
