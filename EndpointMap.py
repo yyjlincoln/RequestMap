@@ -1,6 +1,7 @@
 from functools import wraps
 import inspect
 from typing import Callable
+from .Protocols.ProtocolBase import StandardProtocolHandler
 
 
 class MissingParameter(Exception):
@@ -20,23 +21,6 @@ class EndpointNotFound(Exception):
     def __init__(self, name):
         super().__init__(f"Endpoint {name} can not be found")
         self.name = name
-
-
-class ProtocolHandler:
-    def __init__(self):
-        self.map = None
-
-    def install(self, map):
-        self.map = map
-        self.initialise()
-
-    def initialise(self):
-        'The initialise method is called after the map has been registered'
-        pass
-
-    def onNewEndpoint(self, endpoint):
-        'The onNewEndpoint method is called when a new endpoint is added'
-        pass
 
 
 class Map():
@@ -167,5 +151,6 @@ class Map():
         # Note: This does NOT return the data from the handler.
         return sendData(endpoint["endpointHandler"](**callDict))
 
-    def useProtocol(self, protocolHandlerInstance: ProtocolHandler):
+    def useProtocol(self, protocolHandlerInstance: StandardProtocolHandler):
         protocolHandlerInstance.install(self)
+        self.installedProtocols.append(protocolHandlerInstance)

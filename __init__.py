@@ -1,1 +1,1 @@
-from .EndpointMap import EndpointMap
+from .EndpointMap import Map
