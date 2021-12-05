@@ -1,8 +1,8 @@
 from functools import wraps
 import inspect
-from typing import Callable
+from typing import Any, Callable
 
-from RequestMap.Response.ResponseBase import StandardResponseHandler
+from .Response.ResponseBase import NoResponseHandler, StandardResponseHandler
 from .Protocols.ProtocolBase import StandardProtocolHandler
 
 
@@ -25,10 +25,40 @@ class EndpointNotFound(Exception):
         self.name = name
 
 
+class JITDict(dict):
+    '''
+    Just-in-time dictionary
+    - fetches the key from getData in real time
+    - stores a copy of any changes
+    - returns None if a key does not exist
+    '''
+
+    def __init__(self, getData: Callable, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.getData = getData
+
+    def __getitem__(self, key: str) -> Any:
+        if super().__contains__(key):
+            return super().__getitem__(key)
+        else:
+            return self.getData(key)
+
+    def __setitem__(self, key, value):
+        super().__setitem__(key, value)
+
+    def __contains__(self, __o: object) -> bool:
+        sup = super().__contains__(__o)
+        if not sup:
+            return self.getData(__o) != None
+        return True
+
+
 class Map():
     def __init__(self) -> None:
+        'Note: DataName of \'makeResponse\' is reserved for the response handler'
         self.endpointMap = {}
         self.installedProtocols = []
+        self.installedResponseHandler = NoResponseHandler()
 
     def register(self, endpointHandler: str, endpointIdentifier: str, **dataConverters: dict) -> None:
         '''
@@ -54,7 +84,7 @@ class Map():
 
         # Analyse the endpointHandler
         parameters = inspect.signature(endpointHandler).parameters
-        varKeyword = False
+        varKeyword = None
         nonOptionalParameters = []
         optionalParameters = {}
 
@@ -66,7 +96,7 @@ class Map():
                 raise Exception(
                     "Var-positional parameters are not supported. All parameters must be named and must not be positional-only.")
             elif parameter.kind == inspect.Parameter.VAR_KEYWORD:
-                varKeyword = True
+                varKeyword = parameter.name
             else:
                 if parameter.default != inspect.Parameter.empty:
                     optionalParameters[name] = parameter.default
@@ -105,7 +135,20 @@ class Map():
             return __endpoint_internal
         return _endpoint_internal
 
-    def incomingRequest(self, endpointIdentifier: str, getData: Callable, sendData: Callable):
+    def responseStandardizerProxy(self, protocolName):
+        'Adds the protocolName to the standardizer call'
+        def _responseStandardizerProxy(data):
+            return self.installedResponseHandler.standardizeResponse(protocolName=protocolName, data=data)
+        return _responseStandardizerProxy
+
+    def getDataProxy(self, getData, protocolName):
+        def _getDataProxy(key):
+            if key == "makeResponse":
+                return self.responseStandardizerProxy(protocolName)
+            return getData(key)
+        return _getDataProxy
+
+    def incomingRequest(self, protocol: StandardProtocolHandler, endpointIdentifier: str, getData: Callable, sendData: Callable):
         '''
         Handle an incoming request.
         :param endpointIdentifier: The endpoint identifier.
@@ -118,9 +161,12 @@ class Map():
         - NORMAL: Incoming request data, from getData
         - LOWEST: Default data, from the endpoint handler
         '''
+        # Replaces getData with proxy so it can handle "makeResponse"
+        getData = self.getDataProxy(getData, protocol.name)
+
         # Validate endpointIdentifier
         if endpointIdentifier not in self.endpointMap:
-            raise EndpointNotFound(endpointIdentifier)
+            return sendData(self.installedResponseHandler.exceptionHandler(protocol.name, EndpointNotFound(endpointIdentifier)))
 
         # Get endpoint
         endpoint = self.endpointMap[endpointIdentifier]
@@ -130,7 +176,7 @@ class Map():
         for parameter in endpoint["nonOptionalParameters"]:
             data = getData(parameter)
             if data == None:
-                raise MissingParameter(parameter)
+                return sendData(self.installedResponseHandler.exceptionHandler(protocol.name, MissingParameter(parameter)))
             else:
                 callDict[parameter] = data
 
@@ -147,7 +193,10 @@ class Map():
                     callDict[parameter] = endpoint["dataConverters"][parameter](
                         callDict[parameter])
                 except:
-                    raise ParameterConversionFailure(parameter)
+                    return sendData(self.installedResponseHandler.exceptionHandler(protocol.name, ParameterConversionFailure(parameter)))
+
+        if endpoint["varKeyword"] != None:
+            callDict[endpoint["varKeyword"]] = JITDict(getData)
 
         # Call endpoint
         # Note: This does NOT return the data from the handler.
@@ -156,7 +205,13 @@ class Map():
     def useProtocol(self, protocolHandlerInstance: StandardProtocolHandler):
         protocolHandlerInstance.install(self)
         self.installedProtocols.append(protocolHandlerInstance)
-    
+
     def useResponseHandler(self, standardizerInstance: StandardResponseHandler):
         'Standardizes the response'
-        pass
+        if self.installedResponseHandler != None:
+            raise Exception(
+                "You can only register one responseHandler.")
+        if not isinstance(standardizerInstance, StandardResponseHandler):
+            raise TypeError(
+                "ResponseHandler must be an instance of StandardResponseHandler")
+        self.installedResponseHandler = standardizerInstance

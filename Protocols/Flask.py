@@ -3,6 +3,7 @@ from ..EndpointMap import MissingParameter, ParameterConversionFailure, Endpoint
 from flask import Flask, request, jsonify
 import json
 
+
 class HTTPViaFlask(StandardProtocolHandler):
     def __init__(self):
         super().__init__()
@@ -30,7 +31,7 @@ class HTTPViaFlask(StandardProtocolHandler):
 
     def flaskProxy(self, route):
         def proxyInternal():
-            return self.map.incomingRequest(self.translateRouteToIdentifier(route), self.flaskGetDataProxy(), self.sendDataProxy)
+            return self.map.incomingRequest(self, self.translateRouteToIdentifier(route), self.flaskGetDataProxy(), self.sendDataProxy)
         return proxyInternal
 
     def onNewEndpoint(self, endpoint):
