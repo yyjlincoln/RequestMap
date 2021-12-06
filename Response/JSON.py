@@ -27,7 +27,8 @@ class JSONStandardizer(StandardResponseHandler):
     def exceptionHandler(self, exception, *, protocolName=None):
         res = {
             'code': getattr(exception, 'code', -1),
-            'message': getattr(exception, 'message', str(exception)),
+            'message': getattr(exception, 'message', self.standardMessages[getattr(exception, 'code', -1)] if getattr(exception, 'code', -1) in self.standardMessages else str(exception)),
+            'exception': str(exception)
         }
         if protocolName == 'HTTPViaFlask':
             return jsonify(res)
