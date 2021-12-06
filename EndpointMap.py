@@ -230,16 +230,15 @@ class Map():
             varKeyword, nonOptionalParameters, optionalParameters = self.analyseParameters(
                 evaluate)
             try:
-                callDict = self.getCallDict(varKeyword=varKeyword, nonOptionalParameters=nonOptionalParameters,
-                                            optionalParameters=optionalParameters, getData=getData)
+                evaluationCallDict = self.getCallDict(varKeyword=varKeyword, nonOptionalParameters=nonOptionalParameters,
+                                                      optionalParameters=optionalParameters, getData=getData)
             except Exception as e:
                 return sendData(self.installedResponseHandler.exceptionHandler(e, protocolName=protocol.name))
 
             try:
-                evaluate(**callDict)
+                evaluate(**evaluationCallDict)
             except Exception as e:
                 return sendData(self.installedResponseHandler.exceptionHandler(e, protocolName=protocol.name))
-
         # Call endpoint
         # Note: This does NOT return the data from the handler.
         return sendData(endpoint["endpointHandler"](**callDict))
