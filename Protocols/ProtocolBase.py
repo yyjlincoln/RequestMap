@@ -1,4 +1,3 @@
-
 class StandardProtocolHandler:
     def __init__(self):
         self.map = None

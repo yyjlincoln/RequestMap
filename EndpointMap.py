@@ -4,6 +4,9 @@ from typing import Any, Callable
 
 from .Response.ResponseBase import NoResponseHandler, StandardResponseHandler
 from .Protocols.ProtocolBase import StandardProtocolHandler
+from .Validators.ValidatorBase import StandardValidator
+
+import time
 
 
 class MissingParameter(Exception):
@@ -23,6 +26,11 @@ class EndpointNotFound(Exception):
     def __init__(self, name):
         super().__init__(f"Endpoint {name} can not be found")
         self.name = name
+
+
+class ValidationFailure(Exception):
+    def __init__(self, message):
+        super().__init__(message)
 
 
 class JITDict(dict):
@@ -59,6 +67,60 @@ class Map():
         self.endpointMap = {}
         self.installedProtocols = []
         self.installedResponseHandler = NoResponseHandler()
+        self.installedValidators = []
+
+    def analyseParameters(self, func):
+        parameters = inspect.signature(func).parameters
+        varKeyword = None
+        nonOptionalParameters = []
+        optionalParameters = {}
+
+        for name, parameter in parameters.items():
+            if parameter.kind == inspect.Parameter.POSITIONAL_ONLY:
+                raise Exception(
+                    "Positional-only parameters are not supported. All parameters must be named and must not be positional-only.")
+            elif parameter.kind == inspect.Parameter.VAR_POSITIONAL:
+                raise Exception(
+                    "Var-positional parameters are not supported. All parameters must be named and must not be positional-only.")
+            elif parameter.kind == inspect.Parameter.VAR_KEYWORD:
+                varKeyword = parameter.name
+            else:
+                if parameter.default != inspect.Parameter.empty:
+                    optionalParameters[name] = parameter.default
+                else:
+                    nonOptionalParameters.append(name)
+        return varKeyword, nonOptionalParameters, optionalParameters
+
+    def getCallDict(self, getData: Callable, varKeyword: str = None, nonOptionalParameters: list = [], optionalParameters: dict = {}, dataConverters: dict = {}) -> dict:
+        # Check if all required parameters are present
+        callDict = {}
+
+        for parameter in nonOptionalParameters:
+            data = getData(parameter)
+            if data == None:
+                raise MissingParameter(parameter)
+            else:
+                callDict[parameter] = data
+
+        # Add optional parameters
+        for parameter in optionalParameters:
+            data = getData(parameter)
+            if data != None:
+                callDict[parameter] = data
+
+        # Convert Parameters
+        for parameter in dataConverters:
+            if parameter in callDict:
+                try:
+                    callDict[parameter] = dataConverters[parameter](
+                        callDict[parameter])
+                except:
+                    raise ParameterConversionFailure(parameter)
+
+        if varKeyword != None:
+            callDict[varKeyword] = JITDict(getData)
+
+        return callDict
 
     def register(self, endpointHandler: str, endpointIdentifier: str, metadata: dict = {}, **dataConverters: dict) -> None:
         '''
@@ -83,25 +145,8 @@ class Map():
             raise ValueError("EndpointIdentifier is not unique.")
 
         # Analyse the endpointHandler
-        parameters = inspect.signature(endpointHandler).parameters
-        varKeyword = None
-        nonOptionalParameters = []
-        optionalParameters = {}
-
-        for name, parameter in parameters.items():
-            if parameter.kind == inspect.Parameter.POSITIONAL_ONLY:
-                raise Exception(
-                    "Positional-only parameters are not supported. All parameters must be named and must not be positional-only.")
-            elif parameter.kind == inspect.Parameter.VAR_POSITIONAL:
-                raise Exception(
-                    "Var-positional parameters are not supported. All parameters must be named and must not be positional-only.")
-            elif parameter.kind == inspect.Parameter.VAR_KEYWORD:
-                varKeyword = parameter.name
-            else:
-                if parameter.default != inspect.Parameter.empty:
-                    optionalParameters[name] = parameter.default
-                else:
-                    nonOptionalParameters.append(name)
+        varKeyword, nonOptionalParameters, optionalParameters = self.analyseParameters(
+            endpointHandler)
 
         # Register endpoint
         self.endpointMap[endpointIdentifier] = {
@@ -173,33 +218,27 @@ class Map():
 
         # Get endpoint
         endpoint = self.endpointMap[endpointIdentifier]
-        callDict = {}
+        try:
+            callDict = self.getCallDict(
+                getData, varKeyword=endpoint["varKeyword"], nonOptionalParameters=endpoint["nonOptionalParameters"], optionalParameters=endpoint["optionalParameters"], dataConverters=endpoint["dataConverters"])
+        except Exception as e:
+            return sendData(self.installedResponseHandler.exceptionHandler(e, protocolName=protocol.name))
 
-        # Check if all required parameters are present
-        for parameter in endpoint["nonOptionalParameters"]:
-            data = getData(parameter)
-            if data == None:
-                return sendData(self.installedResponseHandler.exceptionHandler(MissingParameter(parameter), protocolName=protocol.name))
-            else:
-                callDict[parameter] = data
+        # Validate the request
+        for validator in self.installedValidators:
+            evaluate = validator.getEvaluationMethod(endpoint)
+            varKeyword, nonOptionalParameters, optionalParameters = self.analyseParameters(
+                evaluate)
+            try:
+                callDict = self.getCallDict(varKeyword=varKeyword, nonOptionalParameters=nonOptionalParameters,
+                                            optionalParameters=optionalParameters, getData=getData)
+            except Exception as e:
+                return sendData(self.installedResponseHandler.exceptionHandler(e, protocolName=protocol.name))
 
-        # Add optional parameters
-        for parameter in endpoint["optionalParameters"]:
-            data = getData(parameter)
-            if data != None:
-                callDict[parameter] = data
-
-        # Convert Parameters
-        for parameter in endpoint["dataConverters"]:
-            if parameter in callDict:
-                try:
-                    callDict[parameter] = endpoint["dataConverters"][parameter](
-                        callDict[parameter])
-                except:
-                    return sendData(self.installedResponseHandler.exceptionHandler(ParameterConversionFailure(parameter), protocolName=protocol.name))
-
-        if endpoint["varKeyword"] != None:
-            callDict[endpoint["varKeyword"]] = JITDict(getData)
+            try:
+                evaluate(**callDict)
+            except Exception as e:
+                return sendData(self.installedResponseHandler.exceptionHandler(e, protocolName=protocol.name))
 
         # Call endpoint
         # Note: This does NOT return the data from the handler.
@@ -218,3 +257,18 @@ class Map():
             raise TypeError(
                 "ResponseHandler must be an instance of StandardResponseHandler")
         self.installedResponseHandler = standardizerInstance
+
+    def useValidator(self, validator: StandardValidator):
+        '''
+        Install a validator.
+        :param validator: The validator to use.
+        '''
+        if not isinstance(validator, StandardValidator):
+            raise TypeError(
+                "Validator must be an instance of StandardValidator.")
+        validator.install(self)
+        self.installedValidators.append(validator)
+
+    def wait(self):
+        while True:
+            time.sleep(10000000)
