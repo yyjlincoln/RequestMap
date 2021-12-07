@@ -5,60 +5,10 @@ from typing import Any, Callable
 from .Response.ResponseBase import NoResponseHandler, StandardResponseHandler
 from .Protocols.ProtocolBase import StandardProtocolHandler
 from .Validators.ValidatorBase import StandardValidator
+from .Utilities.JITDictionary import JITDict
+from .Exceptions import MissingParameter, ParameterConversionFailure, EndpointNotFound
 
 import time
-
-
-class MissingParameter(Exception):
-    def __init__(self, name):
-        super().__init__(f"Missing parameter: {name}")
-        self.name = name
-
-
-class ParameterConversionFailure(Exception):
-    def __init__(self, name):
-        super().__init__(
-            f"Parameter {name} can not be converted to the required type")
-        self.name = name
-
-
-class EndpointNotFound(Exception):
-    def __init__(self, name):
-        super().__init__(f"Endpoint {name} can not be found")
-        self.name = name
-
-
-class ValidationFailure(Exception):
-    def __init__(self, message):
-        super().__init__(message)
-
-
-class JITDict(dict):
-    '''
-    Just-in-time dictionary
-    - fetches the key from getData in real time
-    - stores a copy of any changes
-    - returns None if a key does not exist
-    '''
-
-    def __init__(self, getData: Callable, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.getData = getData
-
-    def __getitem__(self, key: str) -> Any:
-        if super().__contains__(key):
-            return super().__getitem__(key)
-        else:
-            return self.getData(key)
-
-    def __setitem__(self, key, value):
-        super().__setitem__(key, value)
-
-    def __contains__(self, __o: object) -> bool:
-        sup = super().__contains__(__o)
-        if not sup:
-            return self.getData(__o) != None
-        return True
 
 
 class Map():
@@ -226,7 +176,8 @@ class Map():
 
         # Validate the request
         for validator in self.installedValidators:
-            evaluate = validator.getEvaluationMethod(endpoint, protocolName = protocol.name)
+            evaluate = validator.getEvaluationMethod(
+                endpoint, protocolName=protocol.name)
             varKeyword, nonOptionalParameters, optionalParameters = self.analyseParameters(
                 evaluate)
             try:

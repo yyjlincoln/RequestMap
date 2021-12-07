@@ -1,9 +1,4 @@
-class ValidationError(Exception):
-    def __init__(self, code, message):
-        self.message = message
-        self.code = code
-        super().__init__(message + ' (' + str(code) + ')')
-
+from ..Exceptions import ValidationError
 class StandardValidator():
     def __init__(self):
         self.map = None
