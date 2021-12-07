@@ -18,7 +18,10 @@ class EndpointNotFound(Exception):
 
 
 class ValidationError(Exception):
-    def __init__(self, code, message):
+    def __init__(self, code, message=None):
         self.message = message
         self.code = code
-        super().__init__(message + ' (' + str(code) + ')')
+        if message:
+            super().__init__(message + ' (' + str(code) + ')')
+        else:
+            super().__init__('ValidationError: ' + str(code))
