@@ -226,7 +226,7 @@ class Map():
 
         # Validate the request
         for validator in self.installedValidators:
-            evaluate = validator.getEvaluationMethod(endpoint)
+            evaluate = validator.getEvaluationMethod(endpoint, protocolName = protocol.name)
             varKeyword, nonOptionalParameters, optionalParameters = self.analyseParameters(
                 evaluate)
             try:
