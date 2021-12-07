@@ -190,9 +190,12 @@ class Map():
                 evaluate(**evaluationCallDict)
             except Exception as e:
                 return sendData(self.installedResponseHandler.exceptionHandler(e, protocolName=protocol.name))
-        # Call endpoint
+        # Calls the endpoint
         # Note: This does NOT return the data from the handler.
-        return sendData(endpoint["endpointHandler"](**callDict))
+        try:
+            return sendData(endpoint["endpointHandler"](**callDict))
+        except Exception as e:
+            return sendData(self.installedResponseHandler.exceptionHandler(e, protocolName=protocol.name))
 
     def useProtocol(self, protocolHandlerInstance: StandardProtocolHandler):
         protocolHandlerInstance.install(self)
