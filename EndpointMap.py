@@ -178,6 +178,9 @@ class Map():
         for validator in self.installedValidators:
             evaluate = validator.getEvaluationMethod(
                 endpoint, protocolName=protocol.name)
+            if not callable(evaluate):
+                raise TypeError(
+                    "Evaluation method is not callable. Validator: " + str(validator) + ', endpointIdentifier: ' + str(endpoint['endpointIdentifier']) + ', protocolName: ' + str(protocol.name))
             varKeyword, nonOptionalParameters, optionalParameters = self.analyseParameters(
                 evaluate)
             try:
