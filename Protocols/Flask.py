@@ -117,6 +117,12 @@ class HTTPBatchRequestViaFlask(StandardProtocolHandler):
                     'message': 'Missing parameter: data.'
                 })
                 continue
+            if not isinstance(request['data'], dict):
+                batchResponse.append({
+                    'code': -1,
+                    'message': 'Invalid request: data must be a dictionary.'
+                })
+                continue
             # Request endpoint
             response = self.map.incomingRequest(
                 self, request['endpointIdentifier'], request['data'].get, lambda data: data)
