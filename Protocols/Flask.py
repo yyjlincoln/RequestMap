@@ -136,3 +136,52 @@ class HTTPBatchRequestViaFlask(StandardProtocolHandler):
 
     def onNewEndpoint(self, endpoint):
         pass
+class HTTPRequestByEndpointIdentifier(StandardProtocolHandler):
+    def __init__(self, app=None, route='/science'):
+        super().__init__()
+        self.app = app
+        if not app:
+            self.app = Flask(__name__)
+        self.route = route
+        self.name = "HTTPRequestByEndpointIdentifier"
+
+    def initialise(self):
+        self.app.add_url_rule(
+            self.route,
+            'HTTPRequestByEndpointIdentifier-Main',
+            self.handleCall,
+            methods=['GET', 'POST']
+        )
+
+    def flaskGetDataProxy(self):
+        def runtimeProxy(key):
+            # This is neccessary as request.values can only be accessed within an endpoint.
+            return request.values.get(key)
+        return runtimeProxy
+
+    def sendDataProxy(self, data):
+        return data
+
+    def handleCall(self):
+        '''Request Format
+        
+        @param endpointIdentifier = "<endpointIdentifier>"
+        @param data = json.dumps({
+            "<key>": "<value>"
+        })
+        '''
+        # Get endpointIdentifier
+        endpointIdentifier = self.flaskGetDataProxy()('endpointIdentifier')
+        if not endpointIdentifier:
+            return jsonify({
+                'code': -1,
+                'message': 'No endpointIdentifier is provided.'
+            }), 400
+        # Get data
+        
+        response = self.map.incomingRequest(
+                self, endpointIdentifier, self.flaskGetDataProxy(), lambda data: data)
+        return jsonify(response)
+
+    def onNewEndpoint(self, endpoint):
+        pass

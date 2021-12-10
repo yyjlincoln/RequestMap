@@ -2,6 +2,7 @@ class MissingParameter(Exception):
     def __init__(self, name):
         super().__init__(f"Missing parameter: {name}")
         self.name = name
+        self.code = -10001
 
 
 class ParameterConversionFailure(Exception):
@@ -9,12 +10,15 @@ class ParameterConversionFailure(Exception):
         super().__init__(
             f"Parameter {name} can not be converted to the required type")
         self.name = name
+        self.code = -10002
+        
 
 
 class EndpointNotFound(Exception):
     def __init__(self, name):
         super().__init__(f"Endpoint {name} can not be found")
         self.name = name
+        self.code = -10000
 
 
 class ValidationError(Exception):

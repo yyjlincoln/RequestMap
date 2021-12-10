@@ -12,12 +12,14 @@ class JSONStandardizer(StandardResponseHandler):
     }) -> None:
         super().__init__()
         self.standardMessages = standardMessages
-    
+
     def convertDictionaryResponse(self, response, *, protocolName=None):
         if protocolName == 'HTTPViaFlask':
             return jsonify(response)
         elif protocolName == 'HTTPBatchRequestViaFlask':
-            return response # Do not convert to JSON for batch requests
+            return response  # Do not convert to JSON for batch requests
+        elif protocolName == 'HTTPRequestByEndpointIdentifier':
+            return response
         else:
             return json.dumps(response)
 
