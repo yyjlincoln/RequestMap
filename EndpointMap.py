@@ -9,6 +9,7 @@ from .Utilities.JITDictionary import JITDict
 from .Exceptions import MissingParameter, ParameterConversionFailure, EndpointNotFound
 
 import time
+import logging
 
 
 class Map():
@@ -228,3 +229,9 @@ class Map():
     def wait(self):
         while True:
             time.sleep(10000000)
+
+    def start(self):
+        'Starts the server'
+        for protocol in self.installedProtocols:
+            if not protocol.start():
+                logging.warn(f"Failed to start protocol: {protocol.name}")

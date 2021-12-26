@@ -1,15 +1,20 @@
 from .ProtocolBase import StandardProtocolHandler
-from ..EndpointMap import MissingParameter, ParameterConversionFailure, EndpointNotFound
 from flask import Flask, request, jsonify
 import time
 import json
+import threading
 
 
 class HTTPViaFlask(StandardProtocolHandler):
-    def __init__(self, app=None):
-        '''The flask protocol. Configure each endpoint using the metadata field "httpmethods" and "httproute".'''
+    def __init__(self, app=None, **flaskConfig):
+        '''
+        The flask protocol.
+        Configure each endpoint using the metadata field "httpmethods" and "httproute".
+        Variable keyword arguments are passed to the flask app when it starts.
+        '''
         super().__init__()
         self.app = app
+        self.config = flaskConfig
         if not app:
             self.app = Flask(__name__)
         self.name = "HTTPViaFlask"
@@ -50,15 +55,20 @@ class HTTPViaFlask(StandardProtocolHandler):
             methods=methods
         )
 
+    def start(self) -> bool:
+        threading.Thread(target=self.app.run, kwargs=self.config).start()
+        return True
+
 
 class HTTPBatchRequestViaFlask(StandardProtocolHandler):
-    def __init__(self, app=None, route='/batch'):
+    def __init__(self, app=None, route='/batch', **flaskConfig):
         super().__init__()
         self.app = app
         if not app:
             self.app = Flask(__name__)
         self.route = route
         self.name = "HTTPBatchRequestViaFlask"
+        self.config = flaskConfig
 
     def initialise(self):
         self.app.add_url_rule(
@@ -135,15 +145,23 @@ class HTTPBatchRequestViaFlask(StandardProtocolHandler):
         return jsonify(batchResponse)
 
     def onNewEndpoint(self, endpoint):
+        # Don't need to do anything.
         pass
+
+    def start(self):
+        threading.Thread(target=self.app.run, kwargs=self.config).start()
+        return True
+
+
 class HTTPRequestByEndpointIdentifier(StandardProtocolHandler):
-    def __init__(self, app=None, route='/science'):
+    def __init__(self, app=None, route='/science', **flaskConfig):
         super().__init__()
         self.app = app
         if not app:
             self.app = Flask(__name__)
         self.route = route
         self.name = "HTTPRequestByEndpointIdentifier"
+        self.config = flaskConfig
 
     def initialise(self):
         self.app.add_url_rule(
@@ -164,7 +182,7 @@ class HTTPRequestByEndpointIdentifier(StandardProtocolHandler):
 
     def handleCall(self):
         '''Request Format
-        
+
         @param endpointIdentifier = "<endpointIdentifier>"
         @param data = json.dumps({
             "<key>": "<value>"
@@ -178,10 +196,14 @@ class HTTPRequestByEndpointIdentifier(StandardProtocolHandler):
                 'message': 'No endpointIdentifier is provided.'
             }), 400
         # Get data
-        
+
         response = self.map.incomingRequest(
-                self, endpointIdentifier, self.flaskGetDataProxy(), lambda data: data)
+            self, endpointIdentifier, self.flaskGetDataProxy(), lambda data: data)
         return jsonify(response)
 
     def onNewEndpoint(self, endpoint):
         pass
+
+    def start(self):
+        threading.Thread(target=self.app.run, kwargs=self.config).start()
+        return True
