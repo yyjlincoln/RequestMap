@@ -25,7 +25,7 @@ class JITDict(dict):
     def __contains__(self, __o: object) -> bool:
         sup = super().__contains__(__o)
         if not sup:
-            return self.getData(__o) != None
+            return self.getData(__o) is not None
         return True
 
     def get(self, key: str, default: Any = None) -> Any:

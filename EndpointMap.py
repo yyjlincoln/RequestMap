@@ -1,6 +1,6 @@
 from functools import wraps
 import inspect
-from typing import Any, Callable
+from typing import Callable
 
 from .Response.ResponseBase import NoResponseHandler, StandardResponseHandler
 from .Protocols.ProtocolBase import StandardProtocolHandler
@@ -47,7 +47,7 @@ class Map():
 
         for parameter in nonOptionalParameters:
             data = getData(parameter)
-            if data == None:
+            if data is None:
                 raise MissingParameter(parameter)
             else:
                 callDict[parameter] = data
@@ -55,7 +55,7 @@ class Map():
         # Add optional parameters
         for parameter in optionalParameters:
             data = getData(parameter)
-            if data != None:
+            if data is not None:
                 callDict[parameter] = data
 
         # Convert Parameters
@@ -67,7 +67,7 @@ class Map():
                 except:
                     raise ParameterConversionFailure(parameter)
 
-        if varKeyword != None:
+        if varKeyword is not None:
             callDict[varKeyword] = JITDict(getData)
 
         return callDict
