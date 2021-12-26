@@ -3,6 +3,7 @@ from flask import Flask, request, jsonify
 import time
 import json
 import threading
+import logging
 
 
 class HTTPViaFlask(StandardProtocolHandler):
@@ -56,8 +57,14 @@ class HTTPViaFlask(StandardProtocolHandler):
         )
 
     def start(self) -> bool:
-        threading.Thread(target=self.app.run, kwargs=self.config).start()
-        return True
+        if 'ALLOW_DEV_SERVER' in self.config:
+            if self.config['ALLOW_DEV_SERVER']:
+                threading.Thread(target=self.app.run,
+                                 kwargs=self.config).start()
+                return True
+
+        logging.warn('''Not starting HTTPViaFlask in development mode. If you intend to launch the development server, pass through ALLOW_DEV_SERVER=True. If you are using a production server such as gunicorn, please ignore this message.''')
+        return False
 
 
 class HTTPBatchRequestViaFlask(StandardProtocolHandler):
@@ -149,8 +156,14 @@ class HTTPBatchRequestViaFlask(StandardProtocolHandler):
         pass
 
     def start(self):
-        threading.Thread(target=self.app.run, kwargs=self.config).start()
-        return True
+        if 'ALLOW_DEV_SERVER' in self.config:
+            if self.config['ALLOW_DEV_SERVER']:
+                threading.Thread(target=self.app.run,
+                                 kwargs=self.config).start()
+                return True
+
+        logging.warn('''Not starting HTTPBatchRequestViaFlask in development mode. If you intend to launch the development server, pass through ALLOW_DEV_SERVER=True. If you are using a production server such as gunicorn, please ignore this message.''')
+        return False
 
 
 class HTTPRequestByEndpointIdentifier(StandardProtocolHandler):
@@ -205,5 +218,11 @@ class HTTPRequestByEndpointIdentifier(StandardProtocolHandler):
         pass
 
     def start(self):
-        threading.Thread(target=self.app.run, kwargs=self.config).start()
-        return True
+        if 'ALLOW_DEV_SERVER' in self.config:
+            if self.config['ALLOW_DEV_SERVER']:
+                threading.Thread(target=self.app.run,
+                                 kwargs=self.config).start()
+                return True
+
+        logging.warn('''Not starting HTTPRequestByEndpointIdentifier in development mode. If you intend to launch the development server, pass through ALLOW_DEV_SERVER=True. If you are using a production server such as gunicorn, please ignore this message.''')
+        return False
