@@ -175,13 +175,6 @@ class Map():
         # Replaces getData with proxy so it can handle "makeResponse" and other reserved data names
         getData = self.getDataProxy(getData, protocol, endpoint)
 
-        # Prepare to call the endpoint
-        try:
-            callDict = self.getCallDict(
-                getData, varKeyword=endpoint["varKeyword"], nonOptionalParameters=endpoint["nonOptionalParameters"], optionalParameters=endpoint["optionalParameters"], dataConverters=endpoint["dataConverters"])
-        except Exception as e:
-            return sendData(self.installedResponseHandler.exceptionHandler(e, protocolName=protocol.name))
-
         # Validate the request
         for validator in self.installedValidators:
             evaluate = validator.getEvaluationMethod(
@@ -201,6 +194,15 @@ class Map():
                 evaluate(**evaluationCallDict)
             except Exception as e:
                 return sendData(self.installedResponseHandler.exceptionHandler(e, protocolName=protocol.name))
+
+
+        # Prepare to call the endpoint
+        try:
+            callDict = self.getCallDict(
+                getData, varKeyword=endpoint["varKeyword"], nonOptionalParameters=endpoint["nonOptionalParameters"], optionalParameters=endpoint["optionalParameters"], dataConverters=endpoint["dataConverters"])
+        except Exception as e:
+            return sendData(self.installedResponseHandler.exceptionHandler(e, protocolName=protocol.name))
+
         # Calls the endpoint
         # Note: This does NOT return the data from the handler.
         try:
