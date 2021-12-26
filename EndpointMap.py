@@ -140,12 +140,13 @@ class Map():
             return self.installedResponseHandler.standardizeResponse(*args, protocolName=realProtocolName, **kw)
         return _responseStandardizerProxy
 
-    def getDataProxy(self, getData, protocolName):
+    def getDataProxy(self, getData, protocol, endpoint):
         def _getDataProxy(key):
             reservedDataNames = {
-                'makeResponse': self.responseStandardizerProxy(protocolName),
-                # A copy of the proxy itself
-                'getData': self.getDataProxy(getData, protocolName),
+                'makeResponse': self.responseStandardizerProxy(protocol.name),
+                'getData': self.getDataProxy(getData, protocol, endpoint),
+                'protocol': protocol,
+                'endpoint': endpoint
             }
             if key in reservedDataNames:
                 return reservedDataNames[key]
@@ -165,15 +166,16 @@ class Map():
         - NORMAL: Incoming request data, from getData
         - LOWEST: Default data, from the endpoint handler
         '''
-        # Replaces getData with proxy so it can handle "makeResponse"
-        getData = self.getDataProxy(getData, protocol.name)
 
         # Validate endpointIdentifier
         if endpointIdentifier not in self.endpointMap:
             return sendData(self.installedResponseHandler.exceptionHandler(EndpointNotFound(endpointIdentifier), protocolName=protocol.name))
-
-        # Get endpoint
         endpoint = self.endpointMap[endpointIdentifier]
+
+        # Replaces getData with proxy so it can handle "makeResponse" and other reserved data names
+        getData = self.getDataProxy(getData, protocol, endpoint)
+
+        # Prepare to call the endpoint
         try:
             callDict = self.getCallDict(
                 getData, varKeyword=endpoint["varKeyword"], nonOptionalParameters=endpoint["nonOptionalParameters"], optionalParameters=endpoint["optionalParameters"], dataConverters=endpoint["dataConverters"])
