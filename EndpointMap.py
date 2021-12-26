@@ -142,8 +142,13 @@ class Map():
 
     def getDataProxy(self, getData, protocolName):
         def _getDataProxy(key):
-            if key == "makeResponse":
-                return self.responseStandardizerProxy(protocolName)
+            reservedDataNames = {
+                'makeResponse': self.responseStandardizerProxy(protocolName),
+                # A copy of the proxy itself
+                'getData': self.getDataProxy(getData, protocolName),
+            }
+            if key in reservedDataNames:
+                return reservedDataNames[key]
             return getData(key)
         return _getDataProxy
 
