@@ -65,7 +65,7 @@ class Map():
                 try:
                     callDict[parameter] = dataConverters[parameter](
                         callDict[parameter])
-                except:
+                except Exception:
                     raise ParameterConversionFailure(parameter)
 
         if varKeyword is not None:
