@@ -140,13 +140,14 @@ class Map():
             return self.installedResponseHandler.standardizeResponse(*args, protocol=realProtocol, **kw)
         return _responseStandardizerProxy
 
-    def getDataProxy(self, getData, protocol, endpoint):
+    def getDataProxy(self, getData, sendData, protocol, endpoint):
         def _getDataProxy(key):
             reservedDataNames = {
                 'makeResponse': self.responseStandardizerProxy(protocol),
-                'getData': self.getDataProxy(getData, protocol, endpoint),
+                'getData': self.getDataProxy(getData, sendData, protocol, endpoint),
                 'protocol': protocol,
-                'endpoint': endpoint
+                'endpoint': endpoint,
+                'sendData': sendData
             }
             if key in reservedDataNames:
                 return reservedDataNames[key]
@@ -173,7 +174,7 @@ class Map():
         endpoint = self.endpointMap[endpointIdentifier]
 
         # Replaces getData with proxy so it can handle "makeResponse" and other reserved data names
-        getData = self.getDataProxy(getData, protocol, endpoint)
+        getData = self.getDataProxy(getData, sendData, protocol, endpoint)
 
         # Validate the request
         for validator in self.installedValidators:
