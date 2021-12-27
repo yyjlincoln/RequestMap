@@ -195,7 +195,6 @@ class Map():
             except Exception as e:
                 return sendData(self.installedResponseHandler.exceptionHandler(e, protocolName=protocol.name))
 
-
         # Prepare to call the endpoint
         try:
             callDict = self.getCallDict(
@@ -211,6 +210,9 @@ class Map():
             return sendData(self.installedResponseHandler.exceptionHandler(e, protocolName=protocol.name))
 
     def useProtocol(self, protocolHandlerInstance: StandardProtocolHandler):
+        if not isinstance(protocolHandlerInstance, StandardProtocolHandler):
+            raise TypeError(
+                "protocolHandlerInstance must be an instance of StandardProtocolHandler.")
         protocolHandlerInstance.install(self)
         self.installedProtocols.append(protocolHandlerInstance)
 
