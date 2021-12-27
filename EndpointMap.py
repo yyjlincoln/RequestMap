@@ -73,7 +73,7 @@ class Map():
 
         return callDict
 
-    def register(self, endpointHandler: str, endpointIdentifier: str, metadata: dict = {}, **dataConverters: dict) -> None:
+    def register(self, endpointHandler: Callable, endpointIdentifier: str, metadata: dict = {}, **dataConverters: dict) -> None:
         '''
         Register a new endpoint.
         :param endpointHandler: The endpoint handler function.
