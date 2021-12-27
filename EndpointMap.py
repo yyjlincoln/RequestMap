@@ -133,17 +133,17 @@ class Map():
             return __endpoint_internal
         return _endpoint_internal
 
-    def responseStandardizerProxy(self, realProtocolName):
-        'Adds the protocolName to the standardizer call'
-        def _responseStandardizerProxy(*args, protocolName=None, **kw):
-            # protocolName here is used to prevent the user from modifying it.
-            return self.installedResponseHandler.standardizeResponse(*args, protocolName=realProtocolName, **kw)
+    def responseStandardizerProxy(self, realProtocol):
+        'Adds the protocol to the standardizer call'
+        def _responseStandardizerProxy(*args, protocol=None, **kw):
+            # protocol here is used to prevent the user from modifying it.
+            return self.installedResponseHandler.standardizeResponse(*args, protocol=realProtocol, **kw)
         return _responseStandardizerProxy
 
     def getDataProxy(self, getData, protocol, endpoint):
         def _getDataProxy(key):
             reservedDataNames = {
-                'makeResponse': self.responseStandardizerProxy(protocol.name),
+                'makeResponse': self.responseStandardizerProxy(protocol),
                 'getData': self.getDataProxy(getData, protocol, endpoint),
                 'protocol': protocol,
                 'endpoint': endpoint
