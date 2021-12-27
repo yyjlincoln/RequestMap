@@ -11,7 +11,7 @@ class StandardValidator():
     def initialise(self):
         pass
 
-    def getEvaluationMethod(self, endpoint, protocolName):
+    def getEvaluationMethod(self, endpoint, protocol):
         '''
         Returns the evaluation method for the given endpoint.
         The return value is discarded. Throw an error if validation fails.

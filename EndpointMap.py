@@ -169,7 +169,7 @@ class Map():
 
         # Validate endpointIdentifier
         if endpointIdentifier not in self.endpointMap:
-            return sendData(self.installedResponseHandler.exceptionHandler(EndpointNotFound(endpointIdentifier), protocolName=protocol.name))
+            return sendData(self.installedResponseHandler.exceptionHandler(EndpointNotFound(endpointIdentifier), protocol=protocol))
         endpoint = self.endpointMap[endpointIdentifier]
 
         # Replaces getData with proxy so it can handle "makeResponse" and other reserved data names
@@ -178,7 +178,7 @@ class Map():
         # Validate the request
         for validator in self.installedValidators:
             evaluate = validator.getEvaluationMethod(
-                endpoint, protocolName=protocol.name)
+                endpoint, protocol=protocol)
             if not callable(evaluate):
                 raise TypeError(
                     "Evaluation method is not callable. Validator: " + str(validator) + ', endpointIdentifier: ' + str(endpoint['endpointIdentifier']) + ', protocolName: ' + str(protocol.name))
@@ -188,26 +188,26 @@ class Map():
                 evaluationCallDict = self.getCallDict(varKeyword=varKeyword, nonOptionalParameters=nonOptionalParameters,
                                                       optionalParameters=optionalParameters, getData=getData)
             except Exception as e:
-                return sendData(self.installedResponseHandler.exceptionHandler(e, protocolName=protocol.name))
+                return sendData(self.installedResponseHandler.exceptionHandler(e, protocol=protocol))
 
             try:
                 evaluate(**evaluationCallDict)
             except Exception as e:
-                return sendData(self.installedResponseHandler.exceptionHandler(e, protocolName=protocol.name))
+                return sendData(self.installedResponseHandler.exceptionHandler(e, protocol=protocol))
 
         # Prepare to call the endpoint
         try:
             callDict = self.getCallDict(
                 getData, varKeyword=endpoint["varKeyword"], nonOptionalParameters=endpoint["nonOptionalParameters"], optionalParameters=endpoint["optionalParameters"], dataConverters=endpoint["dataConverters"])
         except Exception as e:
-            return sendData(self.installedResponseHandler.exceptionHandler(e, protocolName=protocol.name))
+            return sendData(self.installedResponseHandler.exceptionHandler(e, protocol=protocol))
 
         # Calls the endpoint
         # Note: This does NOT return the data from the handler.
         try:
             return sendData(endpoint["endpointHandler"](**callDict))
         except Exception as e:
-            return sendData(self.installedResponseHandler.exceptionHandler(e, protocolName=protocol.name))
+            return sendData(self.installedResponseHandler.exceptionHandler(e, protocol=protocol))
 
     def useProtocol(self, protocolHandlerInstance: StandardProtocolHandler):
         if not isinstance(protocolHandlerInstance, StandardProtocolHandler):
