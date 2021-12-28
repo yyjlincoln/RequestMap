@@ -6,7 +6,8 @@ from .Response.ResponseBase import NoResponseHandler, StandardResponseHandler
 from .Protocols.ProtocolBase import StandardProtocolHandler
 from .Validators.ValidatorBase import StandardValidator
 from .Utilities.JITDictionary import JITDict
-from .Exceptions import MissingParameter, ParameterConversionFailure, EndpointNotFound
+from .Exceptions import MissingParameter, ParameterConversionFailure, \
+    EndpointNotFound, RequestMapException
 
 import time
 import logging
@@ -65,6 +66,8 @@ class Map():
                 try:
                     callDict[parameter] = dataConverters[parameter](
                         callDict[parameter])
+                except RequestMapException:
+                    raise
                 except Exception:
                     raise ParameterConversionFailure(parameter)
 
