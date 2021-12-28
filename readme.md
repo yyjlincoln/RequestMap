@@ -96,9 +96,11 @@ You can set up an endpoint using the decorator, `RequestMap.EndpointMap.Map().en
 
 Following the decorator, the view function can specify which data is required and which are optional. `RequestMap` will automatically retrieve the values from the request, convert it using the type conversion functions, and pass it to the view function. If the data does not exist and it's nonOptional, then an `Exceptions.MissingParameter` exception will be raised which can be captured by the `responseHandler` function.
 
-## Lifecycle
+## Lifecycle & Internal Logic
 
-Docs coming soon.
+<img src="https://static.yyjlincoln.com/docs/RequestMap/logic.svg">
+
+Alternatively, you can view the PNG version of this flowchart [here](https://static.yyjlincoln.com/docs/RequestMap/logic.png)
 
 ## Example
 
