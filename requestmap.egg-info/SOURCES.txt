@@ -9,8 +9,3 @@ RequestMap.egg-info/top_level.txt
 requestmap/EndpointMap.py
 requestmap/Exceptions.py
 requestmap/__init__.py
-requestmap.egg-info/PKG-INFO
-requestmap.egg-info/SOURCES.txt
-requestmap.egg-info/dependency_links.txt
-requestmap.egg-info/requires.txt
-requestmap.egg-info/top_level.txt

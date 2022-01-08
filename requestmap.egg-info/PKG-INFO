@@ -7,7 +7,7 @@ Author: Yijun Yan
 Author-email: yyjlincoln@gmail.com
 License: Apache
 Platform: UNKNOWN
-Classifier: License :: OSI Approved :: Apache License
+Classifier: License :: OSI Approved :: Apache Software License
 Classifier: Programming Language :: Python :: 3
 Classifier: Programming Language :: Python :: 3.7
 Description-Content-Type: text/markdown
