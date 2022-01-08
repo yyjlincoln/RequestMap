@@ -2,11 +2,11 @@ from functools import wraps
 import inspect
 from typing import Callable
 
-from RequestMap.Response.ResponseBase import NoResponseHandler, StandardResponseHandler
-from RequestMap.Protocols.ProtocolBase import StandardProtocolHandler
-from RequestMap.Validators.ValidatorBase import StandardValidator
-from RequestMap.Utilities.JITDictionary import JITDict
-from RequestMap.Exceptions import MissingParameter, ParameterConversionFailure, \
+from .Response.ResponseBase import NoResponseHandler, StandardResponseHandler
+from .Protocols.ProtocolBase import StandardProtocolHandler
+from .Validators.ValidatorBase import StandardValidator
+from .Utilities.JITDictionary import JITDict
+from .Exceptions import MissingParameter, ParameterConversionFailure, \
     EndpointNotFound, RequestMapException
 
 import time

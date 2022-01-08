@@ -1,5 +1,5 @@
 import pathlib
-from setuptools import setup
+from setuptools import setup, find_packages
 
 # The directory containing this file
 HERE = pathlib.Path(__file__).parent
@@ -10,7 +10,7 @@ README = (HERE / "README.md").read_text()
 # This call to setup() does all the work
 setup(
     name="RequestMap",
-    version="1.0.0",
+    version="1.0.3",
     description="RequestMap is a micro framework for API developments.",
     long_description=README,
     long_description_content_type="text/markdown",
@@ -23,6 +23,6 @@ setup(
         "Programming Language :: Python :: 3",
         "Programming Language :: Python :: 3.7",
     ],
-    packages=["requestmap"],
+    packages=find_packages(),
     install_requires=["flask"]
 )
