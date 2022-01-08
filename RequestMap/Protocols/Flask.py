@@ -1,4 +1,4 @@
-from .ProtocolBase import StandardProtocolHandler
+from RequestMap.Protocols.ProtocolBase import StandardProtocolHandler
 from flask import Flask, request, jsonify
 import time
 import json

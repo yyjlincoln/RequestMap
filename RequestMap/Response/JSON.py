@@ -1,5 +1,5 @@
 import json
-from .ResponseBase import StandardResponseHandler
+from RequestMap.Response.ResponseBase import StandardResponseHandler
 
 # For Flask protocol only. This should be removed in the future and changed to Flask.addRule(...)
 from flask import jsonify

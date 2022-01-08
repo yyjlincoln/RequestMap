@@ -1,4 +1,6 @@
-from ..Exceptions import ValidationError
+from RequestMap.Exceptions import ValidationError
+
+
 class StandardValidator():
     def __init__(self):
         self.map = None
@@ -20,4 +22,3 @@ class StandardValidator():
         def evaluate(sampleValidatorArgument):  # Put required/optional arguments here
             raise ValidationError(-400, 'Not implemented. Can not validate.')
         return evaluate
-
