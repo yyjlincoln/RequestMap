@@ -4,27 +4,37 @@
 
 ## Installing RequestMap
 
-RequestMap is not published on pip yet as it's currently under development. With that in mind, you can add it to your project by following the instructions below.
+RequestMap now available on [pip](https://pypi.org/project/RequestMap/). 
 
-### In your project folder, cloning the repository
+### Using pip
+
+```bash
+pip3 install RequestMap
+```
+
+**RequestMap is currently under active development.**
+
+### Set it up as a submodule
+
+#### In your project folder, cloning the repository
 
 ```bash
 git clone https://github.com/yyjlincoln/RequestMap
 ```
 
-### Then, install the dependencies
+#### Then, install the dependencies
 
 ```bash
 python3 -m pip install -r requirements.txt
 ```
 
-### Finally, add requestmap as a submodule
+#### Finally, add requestmap as a submodule
 
 ```bash
 git submodule add https://github.com/yyjlincoln/RequestMap RequestMap
 ```
 
-### Learn more about submodules
+#### Learn more about submodules
 
 You might wish to learn more about git submodules [here](https://git-scm.com/book/en/v2/Git-Tools-Submodules).
 
@@ -136,4 +146,4 @@ The `RequestMap` framework is used by a few projects. Check them out here:
 RequestMap is licensed under the [Apache License 2.0
 ](https://github.com/yyjlincoln/RequestMap/blob/master/LICENSE).
 
-Copyright @yyjlincoln
+Copyright ©️ 2021-present @yyjlincoln
